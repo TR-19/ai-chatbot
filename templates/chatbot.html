@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Idopia AI Chatbot</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}">
+</head>
+
+<body>
+
+<div class="chat-wrapper">
+
+    <div class="chat-header">
+        <img src="{{ url_for('static', filename='logo.png') }}" class="small-logo">
+        <h2>Idopia AI Assistant</h2>
+    </div>
+
+    <div class="chat-box" id="chat-box">
+        <div class="bot-msg">Hello! 👋 Ask me anything. I can answer AI and general questions 🚀</div>
+    </div>
+
+    <div class="chat-input">
+        <input type="text" id="user-input" placeholder="Ask something...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+</div>
+
+
+<script>
+function createTypingDots() {
+    return `
+    <div class="bot-msg typing" id="typing-indicator">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+    </div>`;
+}
+
+function sendMessage() {
+    let input = document.getElementById("user-input");
+    let message = input.value.trim();
+
+    if (message === "") return;
+
+    let chatBox = document.getElementById("chat-box");
+
+    // Add user message
+    chatBox.innerHTML += `<div class="user-msg">${message}</div>`;
+
+    // Add typing dots animation
+    chatBox.innerHTML += createTypingDots();
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    input.value = "";
+
+    fetch("/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({message: message})
+    })
+    .then(res => res.json())
+    .then(data => {
+        let typingIndicator = document.getElementById("typing-indicator");
+        if (typingIndicator) typingIndicator.remove();
+
+        chatBox.innerHTML += `<div class="bot-msg">${data.reply}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+}
+
+
+// Enter key support
+document.getElementById("user-input").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        sendMessage();
+    }
+});
+</script>
+
+</body>
+</html>
